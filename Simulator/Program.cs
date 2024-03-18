@@ -16,11 +16,14 @@ namespace Simulator
                 return $"{{ firstName: '{FirstName}', lastName: '{LastName}', age: {Age}, id: {Id} }}";
             }
         }
-        async static void Main(string[] args)
+        static void Main(string[] args)
         {
             var simulator = new RequestSimulator();
-
-            await simulator.SimulateRequests("https://localhost:44357", 5);
+            var t = Task.Run(async () =>
+             {
+                 await simulator.SimulateRequests("https://localhost:44357", 5);
+             });
+            t.Wait();
         }
 
         class RequestSimulator
@@ -50,7 +53,7 @@ namespace Simulator
 
                     var task = Task.Run(async () =>
                     {
-                        await SendPostRequest(baseUrl + "/customers", customers);
+                        await SendPostRequest(baseUrl + "/Customer", customers);
                         await Task.Delay(100); // Simulate slight delay between requests
                     });
                     tasks.Add(task);
@@ -65,6 +68,14 @@ namespace Simulator
                 var jsonContent = JsonConvert.SerializeObject(customers);
                 var httpContent = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
                 var response = await httpClient.PostAsync(url, httpContent);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+            }
+
+            private async Task SendGetRequest(string url) //Get Customer
+            {
+                using var httpClient = new System.Net.Http.HttpClient();
+                var response = await httpClient.GetAsync(url);
                 var responseContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
             }
